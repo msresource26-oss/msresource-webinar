@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Data-Driven Development Seminar</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  /* ── DARK THEME (default) ── */
+  :root {
+    --navy: #0a0f2c;
+    --deep: #050919;
+    --gold: #c9a84c;
+    --gold-light: #e8c96a;
+    --accent: #1a6bff;
+    --accent2: #00d4ff;
+    --white: #f9f8f4;
+    --muted: #8b9ab1;
+    --card: rgba(255,255,255,0.04);
+    --border: rgba(201,168,76,0.2);
+    --radius: 16px;
+    --bg: #050919;
+    --surface: #0e1535;
+    --text: #f9f8f4;
+    --text-muted: #8b9ab1;
+    --input-bg: rgba(255,255,255,0.05);
+    --input-border: rgba(255,255,255,0.1);
+    --opt-bg: rgba(255,255,255,0.04);
+    --opt-border: rgba(255,255,255,0.08);
+    --dropdown-bg: #0e1535;
+    --shadow-mesh1: rgba(26,107,255,0.12);
+    --shadow-mesh2: rgba(201,168,76,0.08);
+    --shadow-mesh3: rgba(0,212,255,0.04);
+  }
+
+  /* ── LIGHT THEME ── */
+  [data-theme="light"] {
+    --deep: #f0f2f8;
+    --bg: #f0f2f8;
+    --surface: #ffffff;
+    --navy: #0a0f2c;
+    --white: #0d1230;
+    --text: #0d1230;
+    --text-muted: #5a6680;
+    --muted: #5a6680;
+    --card: rgba(0,0,0,0.03);
+    --border: rgba(201,168,76,0.3);
+    --input-bg: rgba(255,255,255,0.9);
+    --input-border: rgba(10,15,44,0.15);
+    --opt-bg: rgba(0,0,0,0.02);
+    --opt-border: rgba(0,0,0,0.07);
+    --dropdown-bg: #ffffff;
+    --shadow-mesh1: rgba(26,107,255,0.06);
+    --shadow-mesh2: rgba(201,168,76,0.06);
+    --shadow-mesh3: rgba(0,212,255,0.03);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; transition: background 0.4s; }
+
+  /* ── OVERLAY BG adapts to theme ── */
+  [data-theme="light"] .overlay {
+    background: rgba(200,205,225,0.85);
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background 0.4s ease, color 0.4s ease;
+  }
+
+  /* ── THEME TOGGLE ── */
+  .theme-toggle {
+    position: fixed; top: 20px; right: 20px; z-index: 200;
+    width: 52px; height: 28px;
+    background: rgba(201,168,76,0.15);
+    border: 1.5px solid var(--border);
+    border-radius: 50px; cursor: pointer;
+    display: flex; align-items: center;
+    padding: 3px;
+    transition: background 0.3s, border 0.3s;
+    backdrop-filter: blur(8px);
+  }
+  .theme-toggle:hover { background: rgba(201,168,76,0.25); }
+  .toggle-knob {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 2px 8px rgba(201,168,76,0.4);
+  }
+  [data-theme="light"] .toggle-knob { transform: translateX(24px); }
+
+  /* ── BG MESH ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, var(--shadow-mesh1) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, var(--shadow-mesh2) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, var(--shadow-mesh3) 0%, transparent 50%);
+    pointer-events: none;
+    transition: background 0.4s;
+  }
+
+  /* ── HERO ── */
+  #hero {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 24px 80px;
+    text-align: center;
+  }
+
+  .sponsor-badge {
+    display: flex; flex-direction: column; align-items: flex-start;
+    position: absolute; top: 28px; left: 28px;
+  }
+  .sponsor-badge img {
+    height: 52px; width: auto; object-fit: contain;
+    filter: drop-shadow(0 2px 12px rgba(201,168,76,0.3));
+  }
+  .sponsor-label {
+    display: flex; align-items: center; gap: 5px;
+    margin-top: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+    color: var(--gold); text-transform: uppercase;
+  }
+  .verified-badge {
+    width: 15px; height: 15px; background: #1d9bf0;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .verified-badge svg { width: 9px; height: 9px; }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(201,168,76,0.1); border: 1px solid var(--border);
+    border-radius: 50px; padding: 6px 18px;
+    font-size: 12px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 28px;
+    animation: fadeUp 0.8s ease both;
+  }
+  .hero-eyebrow span { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); display: block; animation: pulse 2s infinite; }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 6vw, 5rem);
+    font-weight: 900; line-height: 1.08;
+    max-width: 860px;
+    animation: fadeUp 0.9s 0.1s ease both;
+  }
+  .hero-title .highlight {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .hero-sub {
+    margin-top: 22px;
+    max-width: 600px;
+    font-size: 1.05rem; color: var(--muted); line-height: 1.7;
+    animation: fadeUp 1s 0.2s ease both;
+  }
+
+  .hero-meta {
+    display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;
+    margin-top: 32px;
+    animation: fadeUp 1s 0.3s ease both;
+  }
+  .meta-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 50px; padding: 8px 18px;
+    font-size: 13px; color: var(--muted);
+  }
+  .meta-chip svg { color: var(--gold); flex-shrink: 0; }
+
+  .cta-btn {
+    margin-top: 42px;
+    display: inline-flex; align-items: center; gap: 12px;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+    color: var(--navy); font-weight: 700; font-size: 1rem;
+    border: none; border-radius: 50px; padding: 18px 42px;
+    cursor: pointer; text-decoration: none;
+    box-shadow: 0 8px 32px rgba(201,168,76,0.35), 0 2px 8px rgba(0,0,0,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: fadeUp 1s 0.4s ease both;
+  }
+  .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(201,168,76,0.5); }
+  .cta-btn svg { transition: transform 0.2s; }
+  .cta-btn:hover svg { transform: translateX(4px); }
+
+  .scroll-hint {
+    position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase;
+    animation: fadeUp 1s 0.7s ease both;
+  }
+  .scroll-line { width: 1px; height: 40px; background: linear-gradient(to bottom, var(--gold), transparent); animation: scrollPulse 2s infinite; }
+
+  /* ── FORM SECTION ── */
+  #register {
+    position: relative; z-index: 1;
+    padding: 80px 24px 120px;
+    display: none;
+  }
+  #register.visible { display: block; }
+
+  .form-wrapper {
+    max-width: 760px; margin: 0 auto;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .section-header {
+    text-align: center; margin-bottom: 48px;
+  }
+  .section-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .section-header p { color: var(--muted); font-size: 0.95rem; }
+
+  .progress-bar {
+    display: flex; align-items: center; justify-content: center; gap: 0;
+    margin-bottom: 48px; position: relative;
+  }
+  .progress-bar::before {
+    content: ''; position: absolute;
+    top: 50%; left: 10%; right: 10%; height: 2px;
+    background: var(--input-border); z-index: 0;
+    transform: translateY(-50%);
+  }
+  .pb-step {
+    position: relative; z-index: 1;
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    border: 2px solid rgba(255,255,255,0.12);
+    background: var(--bg); color: var(--text-muted);
+    transition: all 0.3s; flex-shrink: 0;
+    margin: 0 calc(100% / 20);
+  }
+  .pb-step.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.1); box-shadow: 0 0 16px rgba(201,168,76,0.25); }
+  .pb-step.done { border-color: var(--gold); background: var(--gold); color: var(--navy); }
+
+  /* ── FORM CARDS ── */
+  .form-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 36px 32px;
+    margin-bottom: 24px;
+    backdrop-filter: blur(12px);
+    display: none;
+    transition: background 0.4s;
+  }
+  .form-section.active { display: block; }
+
+  .fs-title {
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; font-weight: 700; margin-bottom: 28px;
+    padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  .fs-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .fs-icon svg { color: var(--navy); }
+
+  .field-group { margin-bottom: 22px; }
+  .field-group label {
+    display: block; font-size: 13px; font-weight: 600;
+    letter-spacing: 0.5px; color: var(--text-muted);
+    margin-bottom: 8px; text-transform: uppercase;
+  }
+  .field-group label .req { color: var(--gold); margin-left: 2px; }
+
+  .field-group input[type="text"],
+  .field-group input[type="email"],
+  .field-group input[type="tel"],
+  .field-group textarea,
+  .custom-select-trigger {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1.5px solid var(--input-border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s, background 0.25s, color 0.25s;
+  }
+  .field-group input:focus,
+  .field-group textarea:focus,
+  .custom-select-trigger:focus {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.06);
+    box-shadow: 0 0 0 4px rgba(201,168,76,0.1);
+  }
+  .field-group textarea { resize: vertical; min-height: 110px; }
+  .field-group input::placeholder,
+  .field-group textarea::placeholder { color: var(--text-muted); opacity: 0.5; }
+
+  /* ── CUSTOM SELECT ── */
+  .custom-select { position: relative; }
+  .custom-select-trigger {
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none;
+  }
+  .custom-select-trigger .trigger-text { color: var(--text-muted); opacity: 0.6; }
+  .custom-select-trigger .trigger-text.selected { color: var(--text); opacity: 1; }
+  .custom-select-trigger svg { transition: transform 0.3s; flex-shrink: 0; color: var(--muted); }
+  .custom-select.open .custom-select-trigger svg { transform: rotate(180deg); }
+  .custom-select.open .custom-select-trigger { border-color: var(--gold); }
+
+  .custom-options {
+    position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 100;
+    background: var(--dropdown-bg); border: 1.5px solid var(--border);
+    border-radius: 12px; overflow: hidden; max-height: 260px; overflow-y: auto;
+    display: none; box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+  }
+  .custom-select.open .custom-options { display: block; animation: dropDown 0.2s ease; }
+  .custom-option {
+    padding: 12px 18px; cursor: pointer; font-size: 0.9rem;
+    display: flex; align-items: center; gap: 10px;
+    transition: background 0.15s, color 0.15s;
+    border-bottom: 1px solid var(--opt-border);
+    color: var(--text);
+  }
+  .custom-option:last-child { border-bottom: none; }
+  .custom-option:hover { background: rgba(201,168,76,0.1); color: var(--gold); }
+  .custom-option.selected { background: rgba(201,168,76,0.12); color: var(--gold); }
+  .custom-option .opt-check {
+    width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--input-border);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .custom-option.selected .opt-check { background: var(--gold); border-color: var(--gold); }
+  .custom-option.selected .opt-check::after { content: '✓'; font-size: 10px; color: var(--navy); font-weight: 700; }
+
+  /* ── CHECKBOXES ── */
+  .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width: 500px) { .checkbox-grid { grid-template-columns: 1fr; } }
+  .cb-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--opt-bg); border: 1.5px solid var(--opt-border);
+    border-radius: 10px; padding: 12px 14px; cursor: pointer;
+    transition: all 0.2s; user-select: none;
+  }
+  .cb-item:hover { border-color: var(--border); background: rgba(201,168,76,0.05); }
+  .cb-item.checked { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .cb-box {
+    width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
+    border: 2px solid var(--input-border);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .cb-item.checked .cb-box { background: var(--gold); border-color: var(--gold); }
+  .cb-checkmark { opacity: 0; color: var(--navy); font-size: 12px; font-weight: 800; transition: opacity 0.2s; }
+  .cb-item.checked .cb-checkmark { opacity: 1; }
+  .cb-label { font-size: 0.88rem; }
+  input[type="checkbox"].hidden-cb { display: none; }
+
+  /* ── RADIO ── */
+  .radio-group { display: flex; flex-wrap: wrap; gap: 10px; }
+  .radio-item {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--opt-bg); border: 1.5px solid var(--opt-border);
+    border-radius: 10px; padding: 10px 16px; cursor: pointer;
+    transition: all 0.2s; user-select: none;
+  }
+  .radio-item:hover { border-color: var(--border); }
+  .radio-item.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .radio-dot {
+    width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid var(--input-border); position: relative;
+    transition: all 0.2s;
+  }
+  .radio-item.selected .radio-dot { border-color: var(--gold); }
+  .radio-dot::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 8px; height: 8px; border-radius: 50%; background: var(--gold);
+    transition: transform 0.2s;
+  }
+  .radio-item.selected .radio-dot::after { transform: translate(-50%, -50%) scale(1); }
+  .radio-label { font-size: 0.88rem; }
+  input[type="radio"].hidden-rb { display: none; }
+
+  /* ── NAV BTNS ── */
+  .form-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 32px; gap: 16px;
+  }
+  .btn-back, .btn-next, .btn-submit {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: none; border-radius: 50px; padding: 14px 32px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-back {
+    background: transparent; border: 1.5px solid var(--input-border);
+    color: var(--muted);
+  }
+  .btn-back:hover { border-color: var(--muted); color: var(--text); }
+  .btn-next {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+    color: var(--navy);
+    box-shadow: 0 6px 24px rgba(201,168,76,0.3);
+    margin-left: auto;
+  }
+  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(201,168,76,0.45); }
+  .btn-submit {
+    background: linear-gradient(135deg, #1a6bff 0%, #00d4ff 100%);
+    color: #ffffff;
+    box-shadow: 0 6px 24px rgba(26,107,255,0.35);
+    margin-left: auto;
+  }
+  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(26,107,255,0.5); }
+
+  /* ── ALERT POPUP ── */
+  .overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(5,9,25,0.85); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; opacity: 0; pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  .overlay.show { opacity: 1; pointer-events: all; }
+  .alert-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 24px; padding: 48px 40px;
+    max-width: 480px; width: 100%; text-align: center;
+    transform: translateY(30px) scale(0.95);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative; overflow: hidden;
+  }
+  .alert-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--accent2));
+  }
+  .overlay.show .alert-card { transform: translateY(0) scale(1); }
+  .alert-icon {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; font-size: 32px;
+    box-shadow: 0 8px 32px rgba(201,168,76,0.35);
+  }
+  .alert-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem; font-weight: 700; margin-bottom: 12px;
+  }
+  .alert-body { color: var(--muted); line-height: 1.7; margin-bottom: 28px; }
+  .alert-close {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: var(--navy); border: none; border-radius: 50px;
+    padding: 12px 36px; font-weight: 700; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+    transition: transform 0.2s;
+  }
+  .alert-close:hover { transform: scale(1.04); }
+
+  /* ── PARTNERS SECTION ── */
+  #partners {
+    position: relative; z-index: 1;
+    padding: 60px 24px 100px;
+    text-align: center;
+  }
+  .partners-title {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 36px;
+  }
+  .partners-track {
+    display: flex; flex-wrap: wrap; align-items: center;
+    justify-content: center; gap: 28px;
+  }
+  .partner-logo {
+    opacity: 0; transform: translateX(0);
+    transition: opacity 0.6s ease, transform 0.6s ease, filter 0.3s;
+    cursor: pointer; display: block;
+    filter: grayscale(1) brightness(0.6);
+  }
+  [data-theme="light"] .partner-logo { filter: grayscale(1) brightness(0.5); }
+  .partner-logo:hover { filter: grayscale(0) brightness(1) !important; transform: scale(1.06) !important; }
+  .partner-logo img { height: 44px; width: auto; max-width: 130px; object-fit: contain; }
+  .partner-logo.slide-in { opacity: 1; }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative; z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 28px 24px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    text-align: center;
+  }
+  .powered-label {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .powered-logo {
+    cursor: pointer; display: inline-block;
+    transition: opacity 0.2s; opacity: 0.7;
+  }
+  .powered-logo:hover { opacity: 1; }
+  .powered-logo img { height: 36px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(201,168,76,0.2)); }
+  .footer-copy { font-size: 11px; color: var(--muted); opacity: 0.5; margin-top: 4px; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  @keyframes scrollPulse { 0%,100% { opacity: 0.3; } 50% { opacity: 0.8; } }
+  @keyframes dropDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── VALIDATION ── */
+  .field-error { color: #ff6b6b; font-size: 12px; margin-top: 6px; display: none; }
+  .field-group.invalid input,
+  .field-group.invalid textarea,
+  .field-group.invalid .custom-select-trigger { border-color: #ff6b6b !important; }
+  .field-group.invalid .field-error { display: block; }
+
+  @media (max-width: 600px) {
+    .form-section { padding: 24px 18px; }
+    .alert-card { padding: 36px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── THEME TOGGLE ── -->
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle day/night theme" aria-label="Toggle theme">
+  <div class="toggle-knob" id="themeKnob">🌙</div>
+</button>
+
+<!-- ── OVERLAY ALERT ── -->
+<div class="overlay" id="successOverlay">
+  <div class="alert-card">
+    <div class="alert-icon">🎉</div>
+    <h2 class="alert-title">You're Registered!</h2>
+    <p class="alert-body">
+      We'll contact you via email or WhatsApp with event details.<br>
+      Stay tuned — this seminar will reshape how you think about data and development.
+    </p>
+    <button class="alert-close" onclick="closeAlert()">Got it, Thanks!</button>
+  </div>
+</div>
+
+<!-- ── HERO ── -->
+<section id="hero">
+  <!-- Sponsor Badge -->
+  <div class="sponsor-badge">
+    <img src="https://i.postimg.cc/sg7W07k9/1000351893-removebg-preview.png" alt="Sponsor Logo" />
+    <div class="sponsor-label">
+      Sponsor
+      <div class="verified-badge">
+        <svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-eyebrow"><span></span> Exclusive Seminar Event</div>
+
+  <h1 class="hero-title">
+    Information as a <span class="highlight">Catalyst</span><br/>
+    for Data-Driven Development
+  </h1>
+
+  <p class="hero-sub">
+    Join developers, founders, and professionals learning how information powers modern innovation, business growth, and AI breakthroughs.
+  </p>
+
+  <div class="hero-meta">
+    <div class="meta-chip">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Live & Interactive
+    </div>
+    <div class="meta-chip">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Networking Opportunities
+    </div>
+    <div class="meta-chip">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      AI & Data Focus
+    </div>
+  </div>
+
+  <button class="cta-btn" onclick="showForm()">
+    Reserve Your Spot
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+  </button>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    Scroll
+  </div>
+</section>
+
+<!-- ── FORM SECTION ── -->
+<section id="register">
+  <div class="form-wrapper">
+    <div class="sponsor-badge" style="position:relative;top:auto;left:auto;margin:0 auto 36px;align-items:center;">
+      <img src="https://i.postimg.cc/sg7W07k9/1000351893-removebg-preview.png" alt="Sponsor Logo" style="height:48px;"/>
+      <div class="sponsor-label" style="margin-top:8px;">
+        Sponsor
+        <div class="verified-badge">
+          <svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <h2>Complete Your <span style="background:linear-gradient(135deg,var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Registration</span></h2>
+      <p>Fill in your details below — takes less than 3 minutes</p>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-bar">
+      <div class="pb-step active" id="step1">1</div>
+      <div class="pb-step" id="step2">2</div>
+      <div class="pb-step" id="step3">3</div>
+      <div class="pb-step" id="step4">4</div>
+      <div class="pb-step" id="step5">5</div>
+      <div class="pb-step" id="step6">6</div>
+    </div>
+
+    <form id="regForm" action="https://formsubmit.co/4bbc7b10b2dc83b076356d487109d203" method="POST">
+      <input type="hidden" name="_captcha" value="false"/>
+      <input type="hidden" name="_template" value="table"/>
+      <input type="hidden" name="_subject" value="New Seminar Registration"/>
+
+      <!-- SECTION 1 -->
+      <div class="form-section active" id="fs1">
+        <div class="fs-title">
+          <div class="fs-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          Personal Information
+        </div>
+        <div class="field-group" id="fg-name">
+          <label>Full Name <span class="req">*</span></label>
+          <input type="text" name="Full Name" placeholder="e.g. John Adeyemi" required/>
+          <div class="field-error">Please enter your full name</div>
+        </div>
+        <div class="field-group" id="fg-email">
+          <label>Email Address <span class="req">*</span></label>
+          <input type="email" name="Email Address" placeholder="you@example.com" required/>
+          <div class="field-error">Please enter a valid email</div>
+        </div>
+        <div class="field-group" id="fg-phone">
+          <label>Phone Number (WhatsApp preferred) <span class="req">*</span></label>
+          <input type="tel" name="Phone Number" placeholder="+234 800 000 0000" required/>
+          <div class="field-error">Please enter your phone number</div>
+        </div>
+        <div class="field-group" id="fg-location">
+          <label>Location (City & Country) <span class="req">*</span></label>
+          <input type="text" name="Location" placeholder="e.g. Lagos, Nigeria" required/>
+          <div class="field-error">Please enter your location</div>
+        </div>
+        <div class="form-nav">
+          <button type="button" class="btn-next" onclick="nextSection(1)">Next <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+        </div>
+      </div>
+
+      <!-- SECTION 2 -->
+      <div class="form-section" id="fs2">
+        <div class="fs-title">
+          <div class="fs-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-4 4-4-4"/></svg>
+          </div>
+          Participant Profile
+        </div>
+        <div class="field-group">
+          <label>Which best describes you? <span class="req">*</span></label>
+          <div class="custom-select" id="cs-role">
+            <div class="custom-select-trigger" tabindex="0" onclick="toggleSelect('cs-role')">
+              <span class="trigger-text">Select your role</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="custom-options">
+              <div class="custom-option" onclick="selectOption('cs-role','Student','Participant Role')">
+                <div class="opt-check"></div> Student
+              </div>
+              <div class="custom-option" onclick="selectOption('cs-role','Developer (Frontend)','Participant Role')">
+                <div class="opt-check"></div> Developer (Frontend)
+              </div>
+              <div class="custom-option" onclick="selectOption('cs-role','Developer (Backend)','Participant Role')">
+                <div class="opt-check"></div> Developer (Backend)
+              </div>
+              <div class="custom-option" onclick="selectOption('cs-role','Developer (Fullstack)','Participant Role')">
+                <div class="opt-check"></div> Developer (Fullstack)
+              </div>
+              <div class="custom-option" onclick="selectOption('cs-role','Data / AI Professional','Participant Role')">
+                <div class="opt-check"></div> Data / AI Professional
+              </div>
+              <div class="custom-option" onclick="selectOption('cs-role','Product Manager','Participant Role')">
+                <div class="opt-check"></div> Product Manager
+              </div>
+              <div class="custom-option" onclick="selectOption('cs-role','Business Owner','Participant Role')">
+                <div class="opt-check"></div> Business Owner
+              </div>
+              <div class="custom-option" onclick="selectOption('cs-role','Startup Founder','Participant Role')">
+                <div class="opt-check"></div> Startup Founder
+              </div>
+              <div class="custom-option" onclick="selectOption('cs-role','Corporate Professional','Participant Role')">
+                <div class="opt-check"></div> Corporate Professional
+              </div>
+              <div class="custom-option" onclick="selectOption('cs-role','Other','Participant Role')">
+                <div class="opt-check"></div> Other
+              </div>
+            </div>
+            <input type="hidden" name="Participant Role" id="cs-role-val" required/>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Experience Level <span class="req">*</span></label>
+          <div class="radio-group" id="rg-level">
+            <div class="radio-item" onclick="selectRadio('rg-level','Beginner','Experience Level')">
+              <div class="radio-dot"></div>
+              <span class="radio-label">Beginner</span>
+            </div>
+            <div class="radio-item" onclick="selectRadio('rg-level','Intermediate','Experience Level')">
+              <div class="radio-dot"></div>
+              <span class="radio-label">Intermediate</span>
+            </div>
+            <div class="radio-item" onclick="selectRadio('rg-level','Advanced','Experience Level')">
+              <div class="radio-dot"></div>
+              <span class="radio-label">Advanced</span>
+            </div>
+          </div>
+          <input type="hidden" name="Experience Level" id="rg-level-val" required/>
+        </div>
+        <div class="field-group">
+          <label>Industry <span style="color:var(--muted);font-size:11px;text-transform:none;letter-spacing:0;">(Optional)</span></label>
+          <input type="text" name="Industry" placeholder="e.g. Fintech, Healthcare, EdTech"/>
+        </div>
+        <div class="field-group">
+          <label>Tools & Technologies You Use <span style="color:var(--muted);font-size:11px;text-transform:none;letter-spacing:0;">(Optional)</span></label>
+          <textarea name="Tools and Technologies" placeholder="e.g. Node.js, Python, AI tools, Cloud, React..."></textarea>
+        </div>
+        <div class="form-nav">
+          <button type="button" class="btn-back" onclick="prevSection(2)">← Back</button>
+          <button type="button" class="btn-next" onclick="nextSection(2)">Next <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+        </div>
+      </div>
+
+      <!-- SECTION 3 -->
+      <div class="form-section" id="fs3">
+        <div class="fs-title">
+          <div class="fs-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          Interest & Intent
+        </div>
+        <div class="field-group">
+          <label>Why are you interested? <span class="req">*</span></label>
+          <div class="checkbox-grid" id="cg-interest">
+            <div class="cb-item" onclick="toggleCb(this,'Data-Driven Development')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Data-Driven Development</span></div>
+            <div class="cb-item" onclick="toggleCb(this,'AI & Emerging Technologies')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">AI & Emerging Technologies</span></div>
+            <div class="cb-item" onclick="toggleCb(this,'Networking with Professionals')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Networking with Professionals</span></div>
+            <div class="cb-item" onclick="toggleCb(this,'Hiring Talent')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Hiring Talent</span></div>
+            <div class="cb-item" onclick="toggleCb(this,'Looking for Job Opportunities')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Job Opportunities</span></div>
+            <div class="cb-item" onclick="toggleCb(this,'Exploring Business Opportunities')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Business Opportunities</span></div>
+            <div class="cb-item" onclick="toggleCb(this,'Just Curious')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Just Curious</span></div>
+          </div>
+          <input type="hidden" name="Interests" id="interests-val"/>
+        </div>
+        <div class="field-group">
+          <label>What do you hope to gain? <span class="req">*</span></label>
+          <textarea name="Goals" placeholder="Share what you hope to learn or achieve from this seminar..." required></textarea>
+        </div>
+        <div class="form-nav">
+          <button type="button" class="btn-back" onclick="prevSection(3)">← Back</button>
+          <button type="button" class="btn-next" onclick="nextSection(3)">Next <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+        </div>
+      </div>
+
+      <!-- SECTION 4 -->
+      <div class="form-section" id="fs4">
+        <div class="fs-title">
+          <div class="fs-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          Opportunities & Engagement
+        </div>
+        <div class="field-group">
+          <label>Interested in <span class="req">*</span></label>
+          <div class="checkbox-grid" id="cg-opps">
+            <div class="cb-item" onclick="toggleCb(this,'Joining a Developer Community')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Developer Community</span></div>
+            <div class="cb-item" onclick="toggleCb(this,'Business/Startup Collaboration')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Startup Collaboration</span></div>
+            <div class="cb-item" onclick="toggleCb(this,'Hiring Developers')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Hiring Developers</span></div>
+            <div class="cb-item" onclick="toggleCb(this,'Getting a Job Opportunity')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Job Opportunity</span></div>
+            <div class="cb-item" onclick="toggleCb(this,'Consulting for My Business')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Business Consulting</span></div>
+            <div class="cb-item" onclick="toggleCb(this,'Partnership Opportunities')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Partnerships</span></div>
+            <div class="cb-item" onclick="toggleCb(this,'Future Events & Trainings')"><div class="cb-box"><span class="cb-checkmark">✓</span></div><span class="cb-label">Future Events & Trainings</span></div>
+          </div>
+          <input type="hidden" name="Opportunities" id="opps-val"/>
+        </div>
+        <div class="field-group">
+          <label>Open to collaboration? <span class="req">*</span></label>
+          <div class="radio-group" id="rg-collab">
+            <div class="radio-item" onclick="selectRadio('rg-collab','Yes','Open to Collaboration')">
+              <div class="radio-dot"></div><span class="radio-label">Yes, absolutely!</span>
+            </div>
+            <div class="radio-item" onclick="selectRadio('rg-collab','No','Open to Collaboration')">
+              <div class="radio-dot"></div><span class="radio-label">Not at this time</span>
+            </div>
+          </div>
+          <input type="hidden" name="Open to Collaboration" id="rg-collab-val" required/>
+        </div>
+        <div class="form-nav">
+          <button type="button" class="btn-back" onclick="prevSection(4)">← Back</button>
+          <button type="button" class="btn-next" onclick="nextSection(4)">Next <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+        </div>
+      </div>
+
+      <!-- SECTION 5 -->
+      <div class="form-section" id="fs5">
+        <div class="fs-title">
+          <div class="fs-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          Business Information <span style="font-size:0.75rem;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--muted);margin-left:8px;">(Optional)</span>
+        </div>
+        <div class="field-group">
+          <label>Company Name</label>
+          <input type="text" name="Company Name" placeholder="Your company or organisation"/>
+        </div>
+        <div class="field-group">
+          <label>Company Industry</label>
+          <input type="text" name="Company Industry" placeholder="e.g. Finance, Healthcare, Tech"/>
+        </div>
+        <div class="field-group">
+          <label>Company Size</label>
+          <div class="radio-group" id="rg-size">
+            <div class="radio-item" onclick="selectRadio('rg-size','1–5','Company Size')"><div class="radio-dot"></div><span class="radio-label">1–5</span></div>
+            <div class="radio-item" onclick="selectRadio('rg-size','6–20','Company Size')"><div class="radio-dot"></div><span class="radio-label">6–20</span></div>
+            <div class="radio-item" onclick="selectRadio('rg-size','21–50','Company Size')"><div class="radio-dot"></div><span class="radio-label">21–50</span></div>
+            <div class="radio-item" onclick="selectRadio('rg-size','50+','Company Size')"><div class="radio-dot"></div><span class="radio-label">50+</span></div>
+          </div>
+          <input type="hidden" name="Company Size" id="rg-size-val"/>
+        </div>
+        <div class="field-group">
+          <label>Do you use Data or AI in operations?</label>
+          <div class="radio-group" id="rg-ai">
+            <div class="radio-item" onclick="selectRadio('rg-ai','Yes','Uses Data or AI')"><div class="radio-dot"></div><span class="radio-label">Yes</span></div>
+            <div class="radio-item" onclick="selectRadio('rg-ai','No','Uses Data or AI')"><div class="radio-dot"></div><span class="radio-label">No</span></div>
+            <div class="radio-item" onclick="selectRadio('rg-ai','Planning to','Uses Data or AI')"><div class="radio-dot"></div><span class="radio-label">Planning to</span></div>
+          </div>
+          <input type="hidden" name="Uses Data or AI" id="rg-ai-val"/>
+        </div>
+        <div class="field-group">
+          <label>Business Challenges</label>
+          <textarea name="Business Challenges" placeholder="What challenges are you currently facing in your business?"></textarea>
+        </div>
+        <div class="form-nav">
+          <button type="button" class="btn-back" onclick="prevSection(5)">← Back</button>
+          <button type="button" class="btn-next" onclick="nextSection(5)">Next <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+        </div>
+      </div>
+
+      <!-- SECTION 6 -->
+      <div class="form-section" id="fs6">
+        <div class="fs-title">
+          <div class="fs-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          Final Details
+        </div>
+        <div class="field-group">
+          <label>How did you hear about us? <span class="req">*</span></label>
+          <div class="custom-select" id="cs-source">
+            <div class="custom-select-trigger" tabindex="0" onclick="toggleSelect('cs-source')">
+              <span class="trigger-text">Select a source</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="custom-options">
+              <div class="custom-option" onclick="selectOption('cs-source','WhatsApp','Heard About Us Via')"><div class="opt-check"></div> WhatsApp</div>
+              <div class="custom-option" onclick="selectOption('cs-source','Instagram','Heard About Us Via')"><div class="opt-check"></div> Instagram</div>
+              <div class="custom-option" onclick="selectOption('cs-source','Twitter (X)','Heard About Us Via')"><div class="opt-check"></div> Twitter (X)</div>
+              <div class="custom-option" onclick="selectOption('cs-source','Friend / Referral','Heard About Us Via')"><div class="opt-check"></div> Friend / Referral</div>
+              <div class="custom-option" onclick="selectOption('cs-source','Website','Heard About Us Via')"><div class="opt-check"></div> Website</div>
+              <div class="custom-option" onclick="selectOption('cs-source','Other','Heard About Us Via')"><div class="opt-check"></div> Other</div>
+            </div>
+            <input type="hidden" name="Heard About Us Via" id="cs-source-val" required/>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Questions for the speakers? <span style="color:var(--muted);font-size:11px;text-transform:none;letter-spacing:0;">(Optional)</span></label>
+          <textarea name="Questions for Speakers" placeholder="Any question you'd like our speakers to address?"></textarea>
+        </div>
+        <div class="form-nav">
+          <button type="button" class="btn-back" onclick="prevSection(6)">← Back</button>
+          <button type="submit" class="btn-submit">
+            Submit Registration
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ── PARTNERS ── -->
+<section id="partners">
+  <p class="partners-title">Our Partners & Sponsors</p>
+  <div class="partners-track" id="partnersTrack">
+    <!-- Logos injected via JS -->
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="powered-label">Powered By</div>
+  <div class="powered-logo" onclick="window.open('https://linkdot-bot.github.io/pulsetechnology/','_blank')" title="Visit our partner">
+    <img src="https://i.postimg.cc/sg7W07k9/1000351893-removebg-preview.png" alt="Powered By Logo"/>
+  </div>
+  <div class="footer-copy">© <span id="footerYear"></span> pulsetechnology. All rights reserved.</div>
+</footer>
+
+<script>
+  // ── DYNAMIC YEAR ──
+  document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+  // ── THEME TOGGLE ──
+  const knob = document.getElementById('themeKnob');
+  let isDark = true;
+  function toggleTheme() {
+    isDark = !isDark;
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    knob.textContent = isDark ? '🌙' : '☀️';
+    localStorage.setItem('seminarTheme', isDark ? 'dark' : 'light');
+  }
+  // Restore saved preference
+  (function() {
+    const saved = localStorage.getItem('seminarTheme');
+    if (saved === 'light') {
+      isDark = false;
+      document.documentElement.setAttribute('data-theme', 'light');
+      knob.textContent = '☀️';
+    }
+  })();
+  function showForm() {
+    const hero = document.getElementById('hero');
+    const reg = document.getElementById('register');
+    hero.style.minHeight = 'auto';
+    reg.classList.add('visible');
+    setTimeout(() => reg.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    setTimeout(animatePartners, 600);
+  }
+
+  // ── MULTI-STEP ──
+  let currentSection = 1;
+  const totalSections = 6;
+
+  function showSection(n) {
+    for (let i = 1; i <= totalSections; i++) {
+      document.getElementById('fs' + i).classList.remove('active');
+      const step = document.getElementById('step' + i);
+      step.classList.remove('active', 'done');
+      if (i < n) step.classList.add('done');
+      else if (i === n) step.classList.add('active');
+    }
+    document.getElementById('fs' + n).classList.add('active');
+    currentSection = n;
+    document.getElementById('register').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function nextSection(from) {
+    if (from === 1 && !validateSection1()) return;
+    if (from === 2 && !validateSection2()) return;
+    if (from === 3 && !validateSection3()) return;
+    if (from === 4 && !validateSection4()) return;
+    if (from === 6 && !validateSection6()) return;
+    showSection(from + 1);
+  }
+  function prevSection(from) { showSection(from - 1); }
+
+  // ── VALIDATION ──
+  function validateSection1() {
+    let ok = true;
+    ['fg-name','fg-email','fg-phone','fg-location'].forEach(id => {
+      const fg = document.getElementById(id);
+      const input = fg.querySelector('input');
+      if (!input.value.trim()) { fg.classList.add('invalid'); ok = false; }
+      else fg.classList.remove('invalid');
+    });
+    return ok;
+  }
+  function validateSection2() {
+    let ok = true;
+    if (!document.getElementById('cs-role-val').value) {
+      alert('Please select your role.'); ok = false;
+    }
+    if (!document.getElementById('rg-level-val').value) {
+      alert('Please select your experience level.'); ok = false;
+    }
+    return ok;
+  }
+  function validateSection3() {
+    if (!document.getElementById('interests-val').value) {
+      alert('Please select at least one interest.'); return false;
+    }
+    const ta = document.querySelector('#fs3 textarea[name="Goals"]');
+    if (!ta.value.trim()) { alert('Please tell us what you hope to gain.'); return false; }
+    return true;
+  }
+  function validateSection4() {
+    if (!document.getElementById('opps-val').value) {
+      alert('Please select at least one opportunity.'); return false;
+    }
+    if (!document.getElementById('rg-collab-val').value) {
+      alert('Please indicate if you\'re open to collaboration.'); return false;
+    }
+    return true;
+  }
+  function validateSection6() {
+    if (!document.getElementById('cs-source-val').value) {
+      alert('Please tell us how you heard about us.'); return false;
+    }
+    return true;
+  }
+
+  // ── CUSTOM SELECT ──
+  function toggleSelect(id) {
+    const el = document.getElementById(id);
+    const isOpen = el.classList.contains('open');
+    document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
+    if (!isOpen) el.classList.add('open');
+  }
+  function selectOption(selectId, value, hiddenName) {
+    const el = document.getElementById(selectId);
+    const trigger = el.querySelector('.trigger-text');
+    trigger.textContent = value;
+    trigger.classList.add('selected');
+    el.querySelector('.custom-options').querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    const hidden = document.getElementById(selectId + '-val');
+    if (hidden) hidden.value = value;
+    el.classList.remove('open');
+  }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.custom-select')) {
+      document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
+    }
+  });
+
+  // ── RADIO ──
+  function selectRadio(groupId, value, hiddenName) {
+    const group = document.getElementById(groupId);
+    group.querySelectorAll('.radio-item').forEach(r => r.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    const hidden = document.getElementById(groupId + '-val');
+    if (hidden) hidden.value = value;
+  }
+
+  // ── CHECKBOXES ──
+  function toggleCb(el, value) {
+    el.classList.toggle('checked');
+    updateCheckboxValues();
+  }
+  function updateCheckboxValues() {
+    const interests = [...document.querySelectorAll('#cg-interest .cb-item.checked')]
+      .map(el => el.querySelector('.cb-label').textContent.trim()).join(', ');
+    document.getElementById('interests-val').value = interests;
+
+    const opps = [...document.querySelectorAll('#cg-opps .cb-item.checked')]
+      .map(el => el.querySelector('.cb-label').textContent.trim()).join(', ');
+    document.getElementById('opps-val').value = opps;
+  }
+
+  // ── FORM SUBMIT ──
+  document.getElementById('regForm').addEventListener('submit', function(e) {
+    if (!validateSection6()) { e.preventDefault(); return; }
+    // Let FormSubmit handle it, but show overlay after a short delay
+    setTimeout(() => showAlert(), 800);
+  });
+
+  function showAlert() {
+    document.getElementById('successOverlay').classList.add('show');
+    animatePartners();
+  }
+  function closeAlert() {
+    document.getElementById('successOverlay').classList.remove('show');
+    document.getElementById('partners').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ── PARTNER LOGOS ANIMATION ──
+  const partners = [
+    { url: 'https://i.postimg.cc/sg7W07k9/1000351893-removebg-preview.png', site: 'https://i.postimg.cc/sg7W07k9/1000351893-removebg-preview.png', name: 'Partner 1' },
+    { url: 'https://i.postimg.cc/sg7W07k9/1000351893-removebg-preview.png', site: 'https://i.postimg.cc/sg7W07k9/1000351893-removebg-preview.png', name: 'Partner 2' },
+    { url: 'https://i.postimg.cc/sg7W07k9/1000351893-removebg-preview.png', site: 'https://i.postimg.cc/sg7W07k9/1000351893-removebg-preview.png', name: 'Partner 3' },
+  ];
+
+  function animatePartners() {
+    const track = document.getElementById('partnersTrack');
+    track.innerHTML = '';
+    partners.forEach((p, i) => {
+      const a = document.createElement('a');
+      a.href = p.site; a.target = '_blank'; a.rel = 'noopener';
+      a.className = 'partner-logo';
+      a.title = p.name;
+      const slideDir = i % 2 === 0 ? 'translateX(60px)' : 'translateX(-60px)';
+      a.style.transform = slideDir;
+      a.innerHTML = `<img src="${p.url}" alt="${p.name}" />`;
+      track.appendChild(a);
+      setTimeout(() => {
+        a.style.opacity = '1';
+        a.style.transform = 'translateX(0)';
+        a.classList.add('slide-in');
+      }, 300 + i * 220);
+    });
+  }
+
+  // ── INPUT LIVE VALIDATION ──
+  document.querySelectorAll('.field-group input, .field-group textarea').forEach(input => {
+    input.addEventListener('input', () => {
+      const fg = input.closest('.field-group');
+      if (fg && input.value.trim()) fg.classList.remove('invalid');
+    });
+  });
+</script>
+</body>
+</html>
